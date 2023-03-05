@@ -145,6 +145,16 @@ include_directories(
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
+add_executable(set_goal src/set_goal.cpp)
+target_link_libraries(set_goal ${catkin_LIBRARIES})
+
+
+add_executable(control src/control.cpp)
+target_link_libraries(control ${catkin_LIBRARIES})
+
+add_executable(drive src/drive.cpp)
+target_link_libraries(drive ${catkin_LIBRARIES})
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
