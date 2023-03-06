@@ -1,0 +1,7 @@
+<launch>
+    <node type="control" pkg="mecanum_steady" name="control" output="screen"/> 
+    <node type="drive" pkg="mecanum_steady" name="drive" output="screen"/> 
+    <node type="set_goal" pkg="mecanum_steady" name="set_goal" output="screen"/> 
+    <!--<node type="rviz" pkg="rviz" name="rviz" output="screen"/> -->
+    <node type="turtlesim_node" pkg="turtlesim" name="turtle1" output="screen"/>
+</launch>

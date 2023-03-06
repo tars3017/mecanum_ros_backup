@@ -3,35 +3,38 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 
-#define ERROR_TOR 0.05
-#define p_VALUE 0.3
-#define q_VALUE 0.3
-#define MAX_SPEED 70
+#define ERROR_TOR 0.09
+#define p_VALUE 3.3
+#define q_VALUE 3.3
+#define MAX_SPEED 10.0
+#define START_CONST 0.8
 
 double start_x, start_y, start_z;
 double target_x, target_y, target_z;
 double now_x, now_y, now_z;
-void dist_cb(const mecanum_stead::location::ConstPtr& msg) {
-    start_x = msg->x;
-    start_y = msg->y;
-    start_z = msg->z;
-    target_x = msg->target_x;
-    target_y = msg->target_y;
-    target_z = msg->target_z;
+void dist_cb(const mecanum_steady::location::ConstPtr& msg) {
+    start_x = msg->start_x;
+    start_y = msg->start_y;
+    start_z = msg->start_z;
+    target_x = msg->x;
+    target_y = msg->y;
+    target_z = msg->z;
 }
-bool error() {
+bool in_error() {
+    if (target_x-now_x == 0 && target_y-now_y == 0 && target_z-now_z == 0) return 0;
     bool able_to_stop = true;
     able_to_stop &= (abs(target_x - now_x) < ERROR_TOR);
     able_to_stop &= (abs(target_y - now_y) < ERROR_TOR);
     able_to_stop &= (abs(target_z - now_z) < ERROR_TOR);
     return able_to_stop;
 }
-void state_cb(const mecanum_stead::location::ConstPtr& msg) {
+void state_cb(const mecanum_steady::location::ConstPtr& msg) {
     now_x = msg->x;
     now_y = msg->y;
     now_z = msg->z;
 }
 double get_vel(double start, double now, double target) {
+    if (now == start && start != target) return (target-now)*START_CONST;
     double ret_vel;
     if (abs(now-start)*p_VALUE < abs(target-now)*q_VALUE) {
         ret_vel = (now - start) * p_VALUE;
@@ -56,12 +59,13 @@ int main(int argc, char** argv) {
 
 
     std_msgs::Bool go_next;
-    mecanum::steady::location vel; 
+    mecanum_steady::location vel; 
 
     go_next.data = 0;
     while (ros::ok()) {
         ros::spinOnce();
         if (in_error()) {
+            /* ROS_INFO("in error"); */
             go_next.data = 1;
             vel.x = 0;
             vel.y = 0;
@@ -69,7 +73,10 @@ int main(int argc, char** argv) {
         }
         else {
             go_next.data = 0;
+            /* ROS_INFO("control %lf %lf %lf", start_x, now_x, target_x); */
+            /* ROS_INFO("expect %lf, %lf", (now_x-start_x)*p_VALUE, (target_x-now_x)*q_VALUE); */
             vel.x = get_vel(start_x, now_x, target_x);
+            /* ROS_INFO("vel %lf", vel.x); */
             vel.y = get_vel(start_y, now_y, target_y);
             vel.z = get_vel(start_z, now_z, target_z);
         }

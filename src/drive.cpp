@@ -2,12 +2,13 @@
 #include "mecanum_steady/location.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
+#include "geometry_msgs/Twist.h"
 
 double last_x_vel, last_y_vel, last_z_vel;
 double cur_x_vel, cur_y_vel, cur_z_vel;
 
 double x_pos, y_pos, z_pos;
-void control_cb(const std_msgs::Float64::ConstPtr& msg) {
+void control_cb(const mecanum_steady::location::ConstPtr& msg) {
     cur_x_vel = msg->x;
     cur_y_vel = msg->y;
     cur_z_vel = msg->z;
@@ -26,13 +27,20 @@ int main(int argc, char** argv) {
     ros::Subscriber sub_encoder = nh.subscribe("/encoder", 10, encoder_cb);
     ros::Publisher pub_motor = nh.advertise<mecanum_steady::location>("/motor_speed", 10);
 
+
+    /* for turtlesim */
+    ros::Publisher pub_turtle = nh.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
+    geometry_msgs::Twist turtle_vel;
+    /* for turtlesim */
+
     last_x_vel = 0, last_y_vel = 0, last_z_vel = 0;
     cur_x_vel = 0, cur_y_vel = 0, cur_z_vel = 0;
     x_pos = 0, y_pos = 0, z_pos = 0;
-    ros::Time last_time, now_time;
+    double last_time, now_time;
 
-    last_time = ros::Time::now();
-    mecanum_steady::locatino output_vel;
+    last_time = ros::Time::now().toSec();
+    mecanum_steady::location now_state;
+    mecanum_steady::location output_vel;
     while (ros::ok()) {
         ros::spinOnce();
 
@@ -42,17 +50,25 @@ int main(int argc, char** argv) {
         last_z_vel = cur_z_vel;
         /* temporary for Rviz */
 
-        now_time = ros::Time::now();
-        x_pos += (last_x_vel) * (now_time - last_time); 
-        y_pos += (last_y_vel) * (now_time - last_time); 
-        z_pos += (last_z_vel) * (now_time - last_time); 
+        now_time = ros::Time::now().toSec();
+        now_state.x += (last_x_vel) * (now_time - last_time); 
+        now_state.y += (last_y_vel) * (now_time - last_time); 
+        now_state.z += (last_z_vel) * (now_time - last_time); 
+        last_time = ros::Time::now().toSec();
+        pub_state.publish(now_state);
 
         
         output_vel.x = cur_x_vel;
         output_vel.y = cur_y_vel;
         output_vel.z = cur_z_vel;
         pub_motor.publish(output_vel);
-        last_time = ros::Time::now();
+
+        /* for turtlesim */
+        turtle_vel.linear.x = cur_x_vel;
+        turtle_vel.linear.y = cur_y_vel;
+        turtle_vel.angular.z = cur_z_vel;
+        pub_turtle.publish(turtle_vel);
+        /* for turtlesim */
     }
     return 0;
 }
