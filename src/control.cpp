@@ -2,11 +2,12 @@
 #include "mecanum_steady/location.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
+#include <algorithm>
 
-#define ERROR_TOR 0.09
-#define p_VALUE 3.3
-#define q_VALUE 3.3
-#define MAX_SPEED 10.0
+#define ERROR_TOR 0.022
+#define p_VALUE 1.6
+#define q_VALUE 1.7
+#define MAX_SPEED 5.0
 #define START_CONST 0.8
 
 double start_x, start_y, start_z;
@@ -34,18 +35,12 @@ void state_cb(const mecanum_steady::location::ConstPtr& msg) {
     now_z = msg->z;
 }
 double get_vel(double start, double now, double target) {
-    if (now == start && start != target) return (target-now)*START_CONST;
     double ret_vel;
-    if (abs(now-start)*p_VALUE < abs(target-now)*q_VALUE) {
-        ret_vel = (now - start) * p_VALUE;
-    }
-    else {
-        ret_vel = (target - now) * q_VALUE;
-    }
-
-    if (abs(ret_vel) > MAX_SPEED) {
-        ret_vel = (ret_vel > 0 ? MAX_SPEED : -MAX_SPEED);
-    }
+    double p = abs(now-start)*p_VALUE + START_CONST;
+    double q = abs(target-now)*q_VALUE;
+    ret_vel = std::min(p, q);
+    ret_vel = std::min(ret_vel, MAX_SPEED);
+    if (target - now < 0) ret_vel *= (-1);
     return ret_vel;
 }
 int main(int argc, char** argv) {
@@ -70,6 +65,7 @@ int main(int argc, char** argv) {
             vel.x = 0;
             vel.y = 0;
             vel.z = 0;
+            ROS_INFO("now_x %lf", now_x);
         }
         else {
             go_next.data = 0;

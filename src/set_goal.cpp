@@ -3,9 +3,10 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 
-#define target_num 4
+#define target_num 8
 
-double target[10][5] { {4, 0, 0}, {4, 3, 0} , {0, 3, 0}, {0, 0, 0}};
+double target[10][5] { {4, 0, 0}, {4, 3, 0} , {0, 3, 0}, {-1, 3, 0},
+                       {-1, -4, 0}, {0, -4}, {1, 3}};
 int idx;
 bool last_go_next;
 mecanum_steady::location now_goal;
@@ -37,7 +38,7 @@ int main(int argc, char** argv) {
         now_goal.x = target[idx][0];
         now_goal.y = target[idx][1];
         now_goal.z = target[idx][2];
-        ROS_INFO("idx %d", idx);
+        /* ROS_INFO("idx %d", idx); */
         /* std::cout << "now_goal " << now_goal.x << ' ' << now_goal.y << ' ' << now_goal.z << std::endl; */    
         pub_dest.publish(now_goal); 
     }
