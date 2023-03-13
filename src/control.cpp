@@ -4,8 +4,8 @@
 #include "std_msgs/Bool.h"
 #include <algorithm>
 
-#define ERROR_TOR 0.022
-#define p_VALUE 1.6
+#define ERROR_TOR 0.032
+#define p_VALUE 1.7
 #define q_VALUE 1.7
 #define MAX_SPEED 5.0
 #define START_CONST 0.8
@@ -14,9 +14,9 @@ double start_x, start_y, start_z;
 double target_x, target_y, target_z;
 double now_x, now_y, now_z;
 void dist_cb(const mecanum_steady::location::ConstPtr& msg) {
-    start_x = msg->start_x;
-    start_y = msg->start_y;
-    start_z = msg->start_z;
+    // start_x = msg->start_x;
+    // start_y = msg->start_y;
+    // start_z = msg->start_z;
     target_x = msg->x;
     target_y = msg->y;
     target_z = msg->z;
@@ -27,6 +27,11 @@ bool in_error() {
     able_to_stop &= (abs(target_x - now_x) < ERROR_TOR);
     able_to_stop &= (abs(target_y - now_y) < ERROR_TOR);
     able_to_stop &= (abs(target_z - now_z) < ERROR_TOR);
+    if (able_to_stop) {
+        start_x = now_x;
+        start_y = now_y;
+        start_z = now_z;
+    }
     return able_to_stop;
 }
 void state_cb(const mecanum_steady::location::ConstPtr& msg) {

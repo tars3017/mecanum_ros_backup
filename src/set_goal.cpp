@@ -5,8 +5,8 @@
 
 #define target_num 8
 
-double target[10][5] { {4, 0, 0}, {4, 3, 0} , {0, 3, 0}, {-1, 3, 0},
-                       {-1, -4, 0}, {0, -4}, {1, 3}};
+double target[10][5] { {4, 0, 0}, {4, 3, 0} , {0, 3, 0}, {0, 0, 0},
+                       {4, 0, 0}, {4, 3}, {0, 3}, {0, 0, 0}};
 int idx;
 bool last_go_next;
 mecanum_steady::location now_goal;
