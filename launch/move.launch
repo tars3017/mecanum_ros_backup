@@ -1,5 +1,25 @@
 <launch>
     <node type="control" pkg="mecanum_steady" name="control" output="screen"/> 
+
+    <param name="x_tol" type="double" value="0.1"/>
+    <param name="y_tol" type="double" value="0.1"/>
+    <param name="z_tol" type="double" value="0.03"/>
+
+    <param name="acc_xy" type="double" value="0.01"/>
+    <param name="acc_zz" type="double" value="0.0025"/>
+
+    <param name="acc_x_frac" type="double" value="0.8"/>
+    <param name="acc_y_frac" type="double" value="0.8"/>
+    <param name="acc_z_frac" type="double" value="0.05"/>
+    <!-- 0.2 percent of the lenght used to deacceleration-->
+
+    <param name="max_xy_vel" type="double" value="4.8"/>
+    <param name="min_xy_vel" type="double" value="0.05"/>
+    <param name="max_zz_vel" type="double" value="0.15"/>
+
+    <param name="kp_xy" type="double" value="0.95"/>
+    <param name="kp_zz" type="double" value="1"/>
+
     <node type="drive" pkg="mecanum_steady" name="drive" output="screen"/> 
     <node type="set_goal" pkg="mecanum_steady" name="set_goal" output="screen"/> 
     <!--<node type="rviz" pkg="rviz" name="rviz" output="screen"/> -->
