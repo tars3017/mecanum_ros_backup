@@ -1,8 +1,9 @@
 #include "ros/ros.h"
-#include "mecanum_steady/location.h"
+// #include "mecanum_steady/location.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 #include "geometry_msgs/Twist.h"
+#include "geometry_msgs/Point.h"
 #include <algorithm>
 
 
@@ -49,7 +50,7 @@ double last_time, now_time;
 double base_now_x_vel, base_now_y_vel, base_now_z_vel;
 double base_last_x_vel = 0, base_last_y_vel = 0, base_last_z_vel = 0;
 
-void dist_cb(const mecanum_steady::location::ConstPtr& msg) {
+void dist_cb(const geometry_msgs::Point::ConstPtr& msg) {
     // start_x = msg->start_x;
     // start_y = msg->start_y;
     // start_z = msg->start_z;
@@ -94,10 +95,10 @@ bool in_error() {
 
 // mecanum_steady::location vel; 
 
-void base_cb(const mecanum_steady::location::ConstPtr& msg) {
-    base_now_x_vel = msg->x;
-    base_now_y_vel = msg->y;
-    base_now_z_vel = msg->z;
+void base_cb(const geometry_msgs::Twist::ConstPtr& msg) {
+    base_now_x_vel = msg->linear.x;
+    base_now_y_vel = msg->linear.y;
+    base_now_z_vel = msg->angular.z;
 
 }
 
