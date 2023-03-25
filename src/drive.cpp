@@ -13,9 +13,9 @@ void control_cb(const mecanum_steady::location::ConstPtr& msg) {
     cur_y_vel = msg->y;
     cur_z_vel = msg->z;
 }
-void encoder_cb(const mecanum_steady::location::ConstPtr& msg) {
-    // TODO
-}
+// void encoder_cb(const mecanum_steady::location::ConstPtr& msg) {
+//     // TODO
+// }
 int main(int argc, char** argv) {
     ros::init(argc, argv, "drive");
     ros::NodeHandle nh;
@@ -24,8 +24,8 @@ int main(int argc, char** argv) {
     ros::Publisher pub_state = nh.advertise<mecanum_steady::location>("/state", 10);
     
     // below 2 lines are for temporary usage
-    ros::Subscriber sub_encoder = nh.subscribe("/encoder", 10, encoder_cb);
-    ros::Publisher pub_motor = nh.advertise<mecanum_steady::location>("/motor_speed", 10);
+    // ros::Subscriber sub_encoder = nh.subscribe("/encoder", 10, encoder_cb);
+    // ros::Publisher pub_motor = nh.advertise<mecanum_steady::location>("/motor_speed", 10);
 
 
     /* for turtlesim */

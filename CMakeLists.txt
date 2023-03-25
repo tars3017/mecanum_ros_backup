@@ -152,8 +152,8 @@ target_link_libraries(set_goal ${catkin_LIBRARIES})
 add_executable(control src/control.cpp)
 target_link_libraries(control ${catkin_LIBRARIES})
 
-add_executable(drive src/drive.cpp)
-target_link_libraries(drive ${catkin_LIBRARIES})
+# add_executable(drive src/drive.cpp)
+# target_link_libraries(drive ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

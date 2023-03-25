@@ -2,12 +2,23 @@
 #include "mecanum_steady/location.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
+#include "geometry_msgs/Twist.h"
 #include <algorithm>
 
 
+
+ros::Subscriber sub_dist;
+ros::Publisher pub_next_ctl;
+
+// connect to STM32
+ros::Subscriber sub_base_vel;
+ros::Publisher pub_base_vel;
+
+    // ros::Publisher pub_control = nh.advertise<mecanum_steady::location>("/control_effort", 1);
+
 double start_x, start_y, start_z;
 double target_x, target_y, target_z;
-double now_x, now_y, now_z;
+double now_x_pos, now_y_pos, now_z_pos;
 double total_x, total_y, total_z;
 
 // param
@@ -29,7 +40,15 @@ double max_zz_vel;
 double kp_xy;
 double kp_zz;
 // param
+
 double x_err, y_err, z_err;
+
+
+geometry_msgs::Twist vel;
+double last_time, now_time;
+double base_now_x_vel, base_now_y_vel, base_now_z_vel;
+double base_last_x_vel = 0, base_last_y_vel = 0, base_last_z_vel = 0;
+
 void dist_cb(const mecanum_steady::location::ConstPtr& msg) {
     // start_x = msg->start_x;
     // start_y = msg->start_y;
@@ -38,10 +57,17 @@ void dist_cb(const mecanum_steady::location::ConstPtr& msg) {
     target_y = msg->y;
     target_z = msg->z;
 
-    total_x = target_x - now_x;
-    total_y = target_y - now_y;
-    total_z = target_z - now_z;
+    total_x = target_x - now_x_pos;
+    total_y = target_y - now_y_pos;
+    total_z = target_z - now_z_pos;
     /* ROS_INFO("target %lf total %lf", target_x, total_x); */
+
+
+    // temporary use for turtlesim
+    base_now_x_vel = vel.linear.x;
+    base_now_y_vel = vel.linear.y;
+    base_now_z_vel = vel.angular.z;
+    ROS_INFO("now assign %lf", vel.linear.x);
 }
 bool in_error() {
     if (x_err == 0 && y_err == 0 && z_err == 0) return 0;
@@ -53,26 +79,41 @@ bool in_error() {
     /* ROS_INFO("err2 %lf %lf", fabs(y_err), y_tol); */
     /* ROS_INFO("err3 %lf %lf", fabs(z_err), z_tol); */
     if (able_to_stop) {
-        start_x = now_x;
-        start_y = now_y;
-        start_z = now_z;
+        start_x = now_x_pos;
+        start_y = now_y_pos;
+        start_z = now_z_pos;
     }
     return able_to_stop;
 }
-void state_cb(const mecanum_steady::location::ConstPtr& msg) {
-    now_x = msg->x;
-    now_y = msg->y;
-    now_z = msg->z;
+// void state_cb(const mecanum_steady::location::ConstPtr& msg) {
+//     now_x = msg->x;
+//     now_y = msg->y;
+//     now_z = msg->z;
+// }
+
+
+// mecanum_steady::location vel; 
+
+void base_cb(const mecanum_steady::location::ConstPtr& msg) {
+    base_now_x_vel = msg->x;
+    base_now_y_vel = msg->y;
+    base_now_z_vel = msg->z;
+
 }
-int main(int argc, char** argv) {
-    ros::init(argc, argv, "control");
-    ros::NodeHandle nh;
 
-    ros::Subscriber sub_dist = nh.subscribe("/setpoint", 10, dist_cb);
-    ros::Subscriber sub_state = nh.subscribe("/state", 10, state_cb);
-    ros::Publisher pub_next_ctl = nh.advertise<std_msgs::Bool>("/next_ctl", 10);
-    ros::Publisher pub_control = nh.advertise<mecanum_steady::location>("/control_effort", 10);
+void cal_pose() {
+    now_time = ros::Time::now().toSec();
+    now_x_pos += (base_last_x_vel + base_now_x_vel) / 2 * (now_time - last_time);
+    now_y_pos += (base_last_y_vel + base_now_y_vel) / 2 * (now_time - last_time);
+    now_z_pos += (base_last_z_vel + base_now_z_vel) / 2 * (now_time - last_time);
+    
+    last_time = ros::Time::now().toSec();
+    base_last_x_vel = base_now_x_vel;
+    base_last_y_vel = base_now_y_vel;
+    base_last_z_vel = base_now_z_vel;
 
+}
+void get_param(ros::NodeHandle nh) {
     nh.getParam("x_tol", x_tol);
     nh.getParam("y_tol", y_tol);
     nh.getParam("z_tol", z_tol);
@@ -87,27 +128,45 @@ int main(int argc, char** argv) {
     nh.getParam("max_zz_vel", max_zz_vel);
     nh.getParam("kp_xy", kp_xy);
     nh.getParam("kp_zz", kp_zz);
+}
 
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "control");
+    ros::NodeHandle nh;
+
+    sub_dist = nh.subscribe("/setpoint", 1, dist_cb);
+    pub_next_ctl = nh.advertise<std_msgs::Bool>("/next_ctl", 1);
+
+    // connect to STM32
+    sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
+    // pub_base_vel = nh.advertise<mecanum_steady::location>("/cmd_vel", 1);
+
+
+    // temporary use for turtlesim
+    pub_base_vel = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1);
+
+
+
+    get_param(nh);
 
     std_msgs::Bool go_next;
-    mecanum_steady::location vel; 
-    double pub_x, pub_y, pub_z;
     double vel_x, vel_y, vel_z;
 
     go_next.data = 0;
     while (ros::ok()) {
         ros::spinOnce();
+        cal_pose();
+        // ROS_INFO("now x pos %lf %lf %lf", now_x_pos, now_y_pos, now_z_pos);
 
-        x_err = target_x - now_x;
-        y_err = target_y - now_y;
-        z_err = target_z - now_z;
+        x_err = target_x - now_x_pos;
+        y_err = target_y - now_y_pos;
+        z_err = target_z - now_z_pos;
 
         if (in_error()) {
             ROS_INFO("in error");
             go_next.data = 1;
             vel_x = 0, vel_y = 0, vel_z = 0;
-            pub_x = 0, pub_y = 0, pub_z = 0;
-            ROS_INFO("now_x %lf %lf %lf", start_x, now_x, target_x);
         }
         else {
             go_next.data = 0;
@@ -115,7 +174,6 @@ int main(int argc, char** argv) {
                 vel_x += (x_err > 0 ? acc_xy : -acc_xy);
                 if (vel_x > max_xy_vel) vel_x = max_xy_vel;
                 else if (vel_x < -max_xy_vel) vel_x = -max_xy_vel;
-                pub_x = vel_x;            
             }
             else if (fabs(x_err) > x_tol) {
                 vel_x = kp_xy * x_err;
@@ -123,14 +181,12 @@ int main(int argc, char** argv) {
                 else if (vel_x < -max_xy_vel) vel_x = -max_xy_vel;
                 else if (vel_x > 0 && vel_x < min_xy_vel) vel_x = min_xy_vel;
                 else if (vel_x < 0 && vel_x > -min_xy_vel) vel_x = -min_xy_vel;
-                pub_x = vel_x;
             }
 
             if (fabs(y_err) > y_tol && fabs(y_err) < fabs(total_y*acc_y_frac)) {
                 vel_y += (y_err > 0 ? acc_xy : -acc_xy);
                 if (vel_y > max_xy_vel) vel_y = max_xy_vel;
                 else if (vel_y < -max_xy_vel) vel_y = -max_xy_vel;
-                pub_y = vel_y;            
             }
             else if (fabs(y_err) > y_tol) {
                 vel_y = kp_xy * y_err;
@@ -138,7 +194,6 @@ int main(int argc, char** argv) {
                 else if (vel_y < -max_xy_vel) vel_y = -max_xy_vel;
                 else if (vel_y > 0 && vel_y < min_xy_vel) vel_y = min_xy_vel;
                 else if (vel_y < 0 && vel_y > -min_xy_vel) vel_y = -min_xy_vel;
-                pub_y = vel_y;
             }
             // ROS_INFO("vel_y %lf", vel_y);
 
@@ -146,18 +201,18 @@ int main(int argc, char** argv) {
                 vel_z += (z_err > 0 ? acc_zz : -acc_zz);
                 if (vel_z > max_zz_vel) vel_z = max_zz_vel;
                 else if (vel_z < -max_zz_vel) vel_z = -max_zz_vel;
-                pub_z = vel_z;            
             }
             else if (fabs(z_err) > z_tol) {
                 vel_z = kp_zz * z_err;
                 if (vel_z > max_zz_vel) vel_z = max_zz_vel;
                 else if (vel_z < -max_zz_vel) vel_z = -max_zz_vel;
-                pub_z = vel_z;
             }
         }
-        vel.x = pub_x, vel.y = pub_y, vel.z = pub_z; 
+        vel.linear.x = vel_x, vel.linear.y = vel_y, vel.angular.z = vel_z; 
+
         pub_next_ctl.publish(go_next);
-        pub_control.publish(vel);
+        pub_base_vel.publish(vel);
+
     }
     return 0;
 }
