@@ -44,24 +44,24 @@ int main(int argc, char** argv) {
     while (ros::ok()) {
         ros::spinOnce();
 
-        /* temporary for Rviz */
-        last_x_vel = cur_x_vel;
-        last_y_vel = cur_y_vel;
-        last_z_vel = cur_z_vel;
-        /* temporary for Rviz */
 
-        now_time = ros::Time::now().toSec();
-        now_state.x += (last_x_vel) * (now_time - last_time); 
-        now_state.y += (last_y_vel) * (now_time - last_time); 
-        now_state.z += (last_z_vel) * (now_time - last_time); 
-        last_time = ros::Time::now().toSec();
-        pub_state.publish(now_state);
-
-        
         output_vel.x = cur_x_vel;
         output_vel.y = cur_y_vel;
         output_vel.z = cur_z_vel;
         pub_motor.publish(output_vel);
+
+        now_time = ros::Time::now().toSec();
+
+        now_state.x += (last_x_vel + cur_x_vel) / 2 * (now_time - last_time); 
+        now_state.y += (last_y_vel + cur_y_vel) / 2 * (now_time - last_time); 
+        now_state.z += (last_z_vel + cur_z_vel) / 2 * (now_time - last_time); 
+        last_time = ros::Time::now().toSec();
+        last_x_vel = cur_x_vel;
+        last_y_vel = cur_y_vel;
+        last_z_vel = cur_z_vel;
+        // ROS_INFO("state %lf", now_state.x);
+        pub_state.publish(now_state);
+
 
         /* for turtlesim */
         turtle_vel.linear.x = cur_x_vel;

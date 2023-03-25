@@ -1,8 +1,8 @@
 <launch>
     <node type="control" pkg="mecanum_steady" name="control" output="screen"/> 
 
-    <param name="x_tol" type="double" value="0.1"/>
-    <param name="y_tol" type="double" value="0.1"/>
+    <param name="x_tol" type="double" value="0.05"/>
+    <param name="y_tol" type="double" value="0.05"/>
     <param name="z_tol" type="double" value="0.03"/>
 
     <param name="acc_xy" type="double" value="0.01"/>

@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
                 else if (vel_y < 0 && vel_y > -min_xy_vel) vel_y = -min_xy_vel;
                 pub_y = vel_y;
             }
-            ROS_INFO("vel_y %lf", vel_y);
+            // ROS_INFO("vel_y %lf", vel_y);
 
             if (fabs(z_err) > z_tol && fabs(z_err) < fabs(total_z*acc_z_frac)) {
                 vel_z += (z_err > 0 ? acc_zz : -acc_zz);
