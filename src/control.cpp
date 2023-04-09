@@ -68,7 +68,7 @@ void dist_cb(const geometry_msgs::Point::ConstPtr& msg) {
     base_now_x_vel = vel.linear.x;
     base_now_y_vel = vel.linear.y;
     base_now_z_vel = vel.angular.z;
-    ROS_INFO("now assign %lf", vel.linear.x);
+    // ROS_INFO("now assign %lf", vel.linear.x);
 }
 bool in_error() {
     if (x_err == 0 && y_err == 0 && z_err == 0) return 0;
@@ -99,6 +99,7 @@ void base_cb(const geometry_msgs::Twist::ConstPtr& msg) {
     base_now_x_vel = msg->linear.x;
     base_now_y_vel = msg->linear.y;
     base_now_z_vel = msg->angular.z;
+    ROS_INFO("get base speed!");
 
 }
 
@@ -141,14 +142,14 @@ int main(int argc, char** argv) {
 
     // connect to STM32
     sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
-    // pub_base_vel = nh.advertise<mecanum_steady::location>("/cmd_vel", 1);
+    pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
 
     // temporary use for turtlesim
-    pub_base_vel = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1);
+    // pub_base_vel = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1);
 
 
-
+    ros::Rate loop_rate(0.5);
     get_param(nh);
 
     std_msgs::Bool go_next;
@@ -165,7 +166,7 @@ int main(int argc, char** argv) {
         z_err = target_z - now_z_pos;
 
         if (in_error()) {
-            ROS_INFO("in error");
+            // ROS_INFO("in error");
             go_next.data = 1;
             vel_x = 0, vel_y = 0, vel_z = 0;
         }
@@ -213,7 +214,8 @@ int main(int argc, char** argv) {
 
         pub_next_ctl.publish(go_next);
         pub_base_vel.publish(vel);
-
+        // ROS_INFO("published %lf %lf %lf", vel_x, vel_y, vel_z);
+        // loop_rate.sleep();
     }
     return 0;
 }

@@ -18,6 +18,7 @@ int main(int argc, char** argv){
         pub.publish(hello);
         hello.data++;
         ros::Duration(0.5).sleep();
+	    std::cout << "count=" << hello.data << std::endl;
     }
 
     ROS_INFO("== Terminate ! ==");
