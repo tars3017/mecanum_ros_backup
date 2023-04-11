@@ -3,6 +3,11 @@
         <param name="port" value="/dev/ttyUSB0" />
         <param name="baud" value="115200" />
         
+        <rosparam>
+            require:
+                publishers: []
+                subscribers: [ ]
+        </rosparam>
     </node>
-    <node type="commu" pkg="mecanum_steady" name="commu" output="screen"></node>
+    <!-- <node type="commu" pkg="mecanum_steady" name="commu" output="screen"></node> -->
 </launch>

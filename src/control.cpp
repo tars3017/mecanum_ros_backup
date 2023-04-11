@@ -99,7 +99,7 @@ void base_cb(const geometry_msgs::Twist::ConstPtr& msg) {
     base_now_x_vel = msg->linear.x;
     base_now_y_vel = msg->linear.y;
     base_now_z_vel = msg->angular.z;
-    ROS_INFO("get base speed!");
+    ROS_INFO("get base speed! %lf %lf %lf", base_now_x_vel, base_now_y_vel, base_last_z_vel);
 
 }
 
@@ -134,6 +134,7 @@ void get_param(ros::NodeHandle nh) {
 
 
 int main(int argc, char** argv) {
+    std::cout << "run control" << std::endl;
     ros::init(argc, argv, "control");
     ros::NodeHandle nh;
 

@@ -3,7 +3,12 @@
         <param name="port" value="/dev/ttyUSB0" />
         <param name="baud" value="115200" />
         
-    </node> -->
+    </node> --> 
+    <!-- rosrun rosserial_python serial_node.py _baud:=115200 _port:=/dev/ttyUSB0 -->
+    <node type="serial_node.py" pkg="rosserial_python" name="serial_node" output="screen">
+        <param name="port" value="/dev/ttyUSB0" />
+        <param name="baud" value="115200" />
+    </node>
 
     <node type="control" pkg="mecanum_steady" name="control" output="screen"/> 
 
