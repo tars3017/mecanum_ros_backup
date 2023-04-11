@@ -155,6 +155,9 @@ target_link_libraries(control ${catkin_LIBRARIES})
 # add_executable(drive src/drive.cpp)
 # target_link_libraries(drive ${catkin_LIBRARIES})
 
+add_executable (commu src/stm_communication.cpp)
+target_link_libraries(commu ${catkin_LIBRARIES})
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

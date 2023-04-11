@@ -6,10 +6,10 @@ from std_msgs.msg import Int64
 
 def publisher():
     rospy.init_node('talker')
-    pub = rospy.Publisher('counting', Int64, queue_size = 10)
+    pub = rospy.Publisher('/counting', Int64, queue_size = 1)
     count = 0
     while not rospy.is_shutdown():
-            print("count=", count)
+            print("publshed", count)
             pub.publish(count)
             rospy.sleep(0.5)
             count+=1
