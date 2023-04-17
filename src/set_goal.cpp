@@ -18,8 +18,11 @@ void next_ctl_cb(const std_msgs::Bool::ConstPtr& msg) {
         // now_goal.start_x = target[idx][0];
         // now_goal.start_y = target[idx][1];
         // now_goal.start_z = target[idx][2];
-        ++idx;
-        ROS_INFO("now %d", idx);
+        // ++idx;
+        std::cout << "Reached the goal (" << now_goal.x
+            << ", " << now_goal.y << ", " << now_goal.z << ", input next goal:\n";
+        std::cin >> now_goal.x >> now_goal.y >> now_goal.z;
+        // ROS_INFO("now %d", idx);
     }
     else {
         last_go_next = 0;
@@ -36,9 +39,10 @@ int main(int argc, char** argv) {
     while (idx < target_num && ros::ok()) {
         ros::spinOnce(); 
         if (idx == target_num) break;
-        now_goal.x = target[idx][0];
-        now_goal.y = target[idx][1];
-        now_goal.z = target[idx][2];
+        // now_goal.x = target[idx][0];
+        // now_goal.y = target[idx][1];
+        // now_goal.z = target[idx][2];
+
         /* ROS_INFO("idx %d", idx); */
         /* std::cout << "now_goal " << now_goal.x << ' ' << now_goal.y << ' ' << now_goal.z << std::endl; */    
         pub_dest.publish(now_goal); 
