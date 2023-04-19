@@ -61,13 +61,13 @@ void dist_cb(const geometry_msgs::Point::ConstPtr& msg) {
     total_x = target_x - now_x_pos;
     total_y = target_y - now_y_pos;
     total_z = target_z - now_z_pos;
-    /* ROS_INFO("target %lf total %lf", target_x, total_x); */
+    // ROS_INFO("target %lf total %lf", target_x, total_x);
 
 
     // temporary use for turtlesim
-    base_now_x_vel = vel.linear.x;
-    base_now_y_vel = vel.linear.y;
-    base_now_z_vel = vel.angular.z;
+    // base_now_x_vel = vel.linear.x;
+    // base_now_y_vel = vel.linear.y;
+    // base_now_z_vel = vel.angular.z;
     // ROS_INFO("now assign %lf", vel.linear.x);
 }
 bool in_error() {
@@ -95,12 +95,17 @@ bool in_error() {
 
 // mecanum_steady::location vel; 
 
-void base_cb(const geometry_msgs::Twist::ConstPtr& msg) {
-    base_now_x_vel = msg->linear.x;
-    base_now_y_vel = msg->linear.y;
-    base_now_z_vel = msg->angular.z;
+void base_cb(const geometry_msgs::Twist::ConstPtr& msg = nullptr) {
+    // base_now_x_vel = msg->linear.x;
+    // base_now_y_vel = msg->linear.y;
+    // base_now_z_vel = msg->angular.z;
+    
+    // for test
+    base_now_x_vel = vel.linear.x;
+    base_now_y_vel = vel.linear.y;
+    base_now_z_vel = vel.angular.z;
     // ROS_INFO("get base speed! %lf %lf %lf", base_now_x_vel, base_now_y_vel, base_now_z_vel);
-
+    
 }
 
 void cal_pose() {
@@ -142,7 +147,7 @@ int main(int argc, char** argv) {
     pub_next_ctl = nh.advertise<std_msgs::Bool>("/next_ctl", 1);
 
     // connect to STM32
-    sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
+    // sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
     pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
 
@@ -150,7 +155,7 @@ int main(int argc, char** argv) {
     // pub_base_vel = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1);
 
 
-    ros::Rate loop_rate(0.5);
+    ros::Rate loop_rate(1);
     get_param(nh);
 
     std_msgs::Bool go_next;
@@ -159,13 +164,16 @@ int main(int argc, char** argv) {
     go_next.data = 0;
     while (ros::ok()) {
         ros::spinOnce();
+        base_cb();
+
         cal_pose();
         // ROS_INFO("now x pos %lf %lf %lf", now_x_pos, now_y_pos, now_z_pos);
 
         x_err = target_x - now_x_pos;
         y_err = target_y - now_y_pos;
         z_err = target_z - now_z_pos;
-
+        // ROS_INFO("now x pos %lf %lf %lf", x_err, y_err, z_err);
+        
         if (in_error()) {
             // ROS_INFO("in error");
             go_next.data = 1;
@@ -213,9 +221,11 @@ int main(int argc, char** argv) {
         }
         vel.linear.x = vel_x, vel.linear.y = vel_y, vel.angular.z = vel_z; 
 
+        ROS_INFO("Output speed %lf %lf %lf", vel_x, vel_y, vel_z);
         pub_next_ctl.publish(go_next);
         pub_base_vel.publish(vel);
-        // ROS_INFO("published %lf %lf %lf", vel_x, vel_y, vel_z);
+        /* if (vel_x > 0 ) */ 
+        /*     ROS_INFO("published %lf %lf %lf", vel_x, vel_y, vel_z); */
         // loop_rate.sleep();
     }
     return 0;
