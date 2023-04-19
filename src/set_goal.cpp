@@ -36,7 +36,9 @@ int main(int argc, char** argv) {
     ros::Publisher pub_dest = nh.advertise<geometry_msgs::Point>("/setpoint", 1);
     ros::Subscriber sub = nh.subscribe("/next_ctl", 1, next_ctl_cb);
 
-    while (idx < target_num && ros::ok()) {
+    std::cout << "First target: ";
+    std::cin >> now_goal.x >> now_goal.y >> now_goal.z;
+    while (ros::ok()) {
         ros::spinOnce(); 
         if (idx == target_num) break;
         // now_goal.x = target[idx][0];
