@@ -50,6 +50,8 @@ double last_time, now_time;
 double base_now_x_vel, base_now_y_vel, base_now_z_vel;
 double base_last_x_vel = 0, base_last_y_vel = 0, base_last_z_vel = 0;
 
+bool test_mode, debug_send_vel, debug_get_vel;
+
 void dist_cb(const geometry_msgs::Point::ConstPtr& msg) {
     // start_x = msg->start_x;
     // start_y = msg->start_y;
@@ -58,10 +60,11 @@ void dist_cb(const geometry_msgs::Point::ConstPtr& msg) {
     target_y = msg->y;
     target_z = msg->z;
 
-    total_x = target_x - now_x_pos;
-    total_y = target_y - now_y_pos;
-    total_z = target_z - now_z_pos;
-    // ROS_INFO("target %lf total %lf", target_x, total_x);
+    total_x = target_x - start_x;
+    total_y = target_y - start_y;
+    total_z = target_z - start_z;
+
+    // ROS_INFO("target %lf now %lf", target_x, now_x_pos);
 
 
     // temporary use for turtlesim
@@ -96,16 +99,19 @@ bool in_error() {
 // mecanum_steady::location vel; 
 
 void base_cb(const geometry_msgs::Twist::ConstPtr& msg = nullptr) {
-    // base_now_x_vel = msg->linear.x;
-    // base_now_y_vel = msg->linear.y;
-    // base_now_z_vel = msg->angular.z;
-    
-    // for test
-    base_now_x_vel = vel.linear.x;
-    base_now_y_vel = vel.linear.y;
-    base_now_z_vel = vel.angular.z;
-    // ROS_INFO("get base speed! %lf %lf %lf", base_now_x_vel, base_now_y_vel, base_now_z_vel);
-    
+    if (!test_mode && msg != nullptr) {
+        base_now_x_vel = msg->linear.x;
+        base_now_y_vel = msg->linear.y;
+        base_now_z_vel = msg->angular.z;
+    }
+    else {
+        base_now_x_vel = vel.linear.x;
+        base_now_y_vel = vel.linear.y;
+        base_now_z_vel = vel.angular.z;
+    }
+    if (debug_get_vel && (base_now_x_vel != 0 || base_now_y_vel != 0 || base_now_z_vel != 0)) {
+        ROS_INFO("Get base speed %lf %lf %lf", base_now_x_vel, base_now_y_vel, base_now_z_vel);
+    }
 }
 
 void cal_pose() {
@@ -135,13 +141,21 @@ void get_param(ros::NodeHandle nh) {
     nh.getParam("max_zz_vel", max_zz_vel);
     nh.getParam("kp_xy", kp_xy);
     nh.getParam("kp_zz", kp_zz);
+    
+    nh.getParam("test_mode", test_mode);
+    nh.getParam("debug_send_vel", debug_send_vel);
+    nh.getParam("debug_get_vel", debug_get_vel);
 }
 
 
 int main(int argc, char** argv) {
-    std::cout << "run control" << std::endl;
+
     ros::init(argc, argv, "control");
     ros::NodeHandle nh;
+    get_param(nh);
+
+    std::cout << "run control" << std::endl;
+    if (test_mode) std::cout << "===== test mode =====" << std::endl; 
 
     sub_dist = nh.subscribe("/setpoint", 1, dist_cb);
     pub_next_ctl = nh.advertise<std_msgs::Bool>("/next_ctl", 1);
@@ -149,17 +163,16 @@ int main(int argc, char** argv) {
     // connect to STM32
     // sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
     pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-
+    
 
     // temporary use for turtlesim
     // pub_base_vel = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1);
 
 
-    ros::Rate loop_rate(1);
-    get_param(nh);
+    ros::Rate loop_rate(0.01);
 
     std_msgs::Bool go_next;
-    double vel_x, vel_y, vel_z;
+    double vel_x = 0, vel_y = 0, vel_z = 0;
 
     go_next.data = 0;
     while (ros::ok()) {
@@ -181,12 +194,15 @@ int main(int argc, char** argv) {
         }
         else {
             go_next.data = 0;
-            if (fabs(x_err) > x_tol && fabs(x_err) < fabs(total_x*acc_x_frac)) {
+            // std::cout << "total_x " << total_x << " " << acc_x_frac << ' ' << x_err << "\n";
+            if ( fabs(x_err) > x_tol && fabs(x_err) > fabs(total_x*(1-acc_x_frac)) ) {
+                // std::cout << "a" << std::endl;
                 vel_x += (x_err > 0 ? acc_xy : -acc_xy);
                 if (vel_x > max_xy_vel) vel_x = max_xy_vel;
                 else if (vel_x < -max_xy_vel) vel_x = -max_xy_vel;
             }
             else if (fabs(x_err) > x_tol) {
+                // std::cout << "b" << std::endl;
                 vel_x = kp_xy * x_err;
                 if (vel_x > max_xy_vel) vel_x = max_xy_vel;
                 else if (vel_x < -max_xy_vel) vel_x = -max_xy_vel;
@@ -194,7 +210,7 @@ int main(int argc, char** argv) {
                 else if (vel_x < 0 && vel_x > -min_xy_vel) vel_x = -min_xy_vel;
             }
 
-            if (fabs(y_err) > y_tol && fabs(y_err) < fabs(total_y*acc_y_frac)) {
+            if ( fabs(y_err) > y_tol && fabs(y_err) > fabs(total_y*(1-acc_y_frac)) ) {
                 vel_y += (y_err > 0 ? acc_xy : -acc_xy);
                 if (vel_y > max_xy_vel) vel_y = max_xy_vel;
                 else if (vel_y < -max_xy_vel) vel_y = -max_xy_vel;
@@ -208,7 +224,7 @@ int main(int argc, char** argv) {
             }
             // ROS_INFO("vel_y %lf", vel_y);
 
-            if (fabs(z_err) > z_tol && fabs(z_err) < fabs(total_z*acc_z_frac)) {
+            if ( fabs(z_err) > z_tol && fabs(z_err) > fabs(total_z*(1-acc_z_frac)) ) {
                 vel_z += (z_err > 0 ? acc_zz : -acc_zz);
                 if (vel_z > max_zz_vel) vel_z = max_zz_vel;
                 else if (vel_z < -max_zz_vel) vel_z = -max_zz_vel;
@@ -221,7 +237,9 @@ int main(int argc, char** argv) {
         }
         vel.linear.x = vel_x, vel.linear.y = vel_y, vel.angular.z = vel_z; 
 
-        ROS_INFO("Output speed %lf %lf %lf", vel_x, vel_y, vel_z);
+        if (debug_send_vel && (vel_x != 0 || vel_y != 0 || vel_z != 0)) {
+            ROS_INFO("Output speed %lf %lf %lf", vel_x, vel_y, vel_z);
+        }
         pub_next_ctl.publish(go_next);
         pub_base_vel.publish(vel);
         /* if (vel_x > 0 ) */ 
