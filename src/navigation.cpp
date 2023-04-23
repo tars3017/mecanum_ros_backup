@@ -11,8 +11,8 @@
 ros::Subscriber sub_dist;
 ros::Publisher pub_next_ctl;
 
+ros::Subscriber sub_odom;
 // connect to STM32
-ros::Subscriber sub_base_vel;
 ros::Publisher pub_base_vel;
 
     // ros::Publisher pub_control = nh.advertise<mecanum_steady::location>("/control_effort", 1);
@@ -46,11 +46,17 @@ double x_err, y_err, z_err;
 
 
 geometry_msgs::Twist vel;
-double last_time, now_time;
+
 double base_now_x_vel, base_now_y_vel, base_now_z_vel;
 double base_last_x_vel = 0, base_last_y_vel = 0, base_last_z_vel = 0;
 
 bool test_mode, debug_send_vel, debug_get_vel;
+
+void odom_cb(const geometry_msgs::Point::ConstPtr& msg) {
+    now_x_pos = msg->x;
+    now_y_pos = msg->y;
+    now_z_pos = msg->z;
+}
 
 void dist_cb(const geometry_msgs::Point::ConstPtr& msg) {
     // start_x = msg->start_x;
@@ -98,34 +104,7 @@ bool in_error() {
 
 // mecanum_steady::location vel; 
 
-void base_cb(const geometry_msgs::Twist::ConstPtr& msg = nullptr) {
-    if (!test_mode && msg != nullptr) {
-        base_now_x_vel = msg->linear.x;
-        base_now_y_vel = msg->linear.y;
-        base_now_z_vel = msg->angular.z;
-    }
-    else {
-        base_now_x_vel = vel.linear.x;
-        base_now_y_vel = vel.linear.y;
-        base_now_z_vel = vel.angular.z;
-    }
-    if (debug_get_vel && (base_now_x_vel != 0 || base_now_y_vel != 0 || base_now_z_vel != 0)) {
-        ROS_INFO("Get base speed %lf %lf %lf", base_now_x_vel, base_now_y_vel, base_now_z_vel);
-    }
-}
 
-void cal_pose() {
-    now_time = ros::Time::now().toSec();
-    now_x_pos += (base_last_x_vel + base_now_x_vel) / 2 * (now_time - last_time);
-    now_y_pos += (base_last_y_vel + base_now_y_vel) / 2 * (now_time - last_time);
-    now_z_pos += (base_last_z_vel + base_now_z_vel) / 2 * (now_time - last_time);
-    
-    last_time = ros::Time::now().toSec();
-    base_last_x_vel = base_now_x_vel;
-    base_last_y_vel = base_now_y_vel;
-    base_last_z_vel = base_now_z_vel;
-
-}
 void get_param(ros::NodeHandle nh) {
     nh.getParam("x_tol", x_tol);
     nh.getParam("y_tol", y_tol);
@@ -150,18 +129,18 @@ void get_param(ros::NodeHandle nh) {
 
 int main(int argc, char** argv) {
 
-    ros::init(argc, argv, "control");
+    ros::init(argc, argv, "navigation");
     ros::NodeHandle nh;
     get_param(nh);
 
-    std::cout << "run control" << std::endl;
+    std::cout << "run navigation" << std::endl;
     if (test_mode) std::cout << "===== test mode =====" << std::endl; 
 
-    sub_dist = nh.subscribe("/setpoint", 1, dist_cb);
-    pub_next_ctl = nh.advertise<std_msgs::Bool>("/next_ctl", 1);
+    sub_dist = nh.subscribe("/base_goal", 1, dist_cb);
+    pub_next_ctl = nh.advertise<std_msgs::Bool>("/reached_status", 1);
 
     // connect to STM32
-    // sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
+    sub_odom = nh.subscribe("/odom", 1, odom_cb);
     pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     
 
@@ -177,9 +156,6 @@ int main(int argc, char** argv) {
     go_next.data = 0;
     while (ros::ok()) {
         ros::spinOnce();
-        base_cb();
-
-        cal_pose();
         // ROS_INFO("now x pos %lf %lf %lf", now_x_pos, now_y_pos, now_z_pos);
 
         x_err = target_x - now_x_pos;

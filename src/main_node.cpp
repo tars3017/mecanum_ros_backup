@@ -30,11 +30,11 @@ void next_ctl_cb(const std_msgs::Bool::ConstPtr& msg) {
     return ;
 }
 int main(int argc, char** argv) { 
-    ros::init(argc, argv, "set_goal");
+    ros::init(argc, argv, "main_node");
     ros::NodeHandle nh;
 
-    ros::Publisher pub_dest = nh.advertise<geometry_msgs::Point>("/setpoint", 1);
-    ros::Subscriber sub = nh.subscribe("/next_ctl", 1, next_ctl_cb);
+    ros::Publisher pub_dest = nh.advertise<geometry_msgs::Point>("/base_goal", 1);
+    ros::Subscriber sub = nh.subscribe("/reached_status", 1, next_ctl_cb);
 
     std::cout << "First target: ";
     std::cin >> now_goal.x >> now_goal.y >> now_goal.z;

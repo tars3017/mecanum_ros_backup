@@ -145,12 +145,15 @@ include_directories(
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
-add_executable(set_goal src/set_goal.cpp)
-target_link_libraries(set_goal ${catkin_LIBRARIES})
+add_executable(main_node src/main_node.cpp)
+target_link_libraries(main_node ${catkin_LIBRARIES})
 
 
-add_executable(control src/control.cpp)
-target_link_libraries(control ${catkin_LIBRARIES})
+add_executable(navigation src/navigation.cpp)
+target_link_libraries(navigation ${catkin_LIBRARIES})
+
+add_executable (odometry src/odometry.cpp)
+target_link_libraries(odometry ${catkin_LIBRARIES})
 
 # add_executable(drive src/drive.cpp)
 # target_link_libraries(drive ${catkin_LIBRARIES})
