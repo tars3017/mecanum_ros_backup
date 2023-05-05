@@ -5,6 +5,8 @@
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Point.h"
 #include <algorithm>
+#include "geometry_msgs/PoseStamped.h"
+#include "tf/transform_broadcaster.h"
 
 double last_time, now_time;
 bool test_mode, debug_get_vel;
@@ -14,6 +16,9 @@ double base_last_x_vel, base_last_y_vel, base_last_z_vel;
 
 ros::Subscriber sub_base_vel;
 ros::Publisher pub_odom;
+
+// for Rviz
+ros::Publisher pub_pose;
 
 // for test_mode use
 ros::Subscriber sub_navi_vel;
@@ -69,6 +74,8 @@ int main(int argc, char** argv) {
     sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
     pub_odom = nh.advertise<geometry_msgs::Point>("/odom", 1);
     
+    // for Rviz
+    pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/rviz_pose", 1);
     // for test_mode use
     sub_navi_vel = nh.subscribe("/cmd_vel", 1, navi_cb);
     
@@ -80,6 +87,19 @@ int main(int argc, char** argv) {
         }
         cal_pose();
         pub_odom.publish(now_pt);
+
+        // for Rviz
+        geometry_msgs::PoseStamped ps;
+        ps.header.stamp = ros::Time::now();
+        ps.header.frame_id = "map";
+        ps.pose.position.x = now_pt.x;
+        ps.pose.position.y = now_pt.y;
+        geometry_msgs::Quaternion goal_quat = tf::createQuaternionMsgFromYaw(now_pt.z);
+        ps.pose.orientation.w = goal_quat.w;
+        ps.pose.orientation.x = goal_quat.x;
+        ps.pose.orientation.y = goal_quat.y;
+        ps.pose.orientation.z = goal_quat.z;
+        pub_pose.publish(ps);
     }
     return 0;
 }
