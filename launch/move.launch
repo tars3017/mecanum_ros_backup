@@ -37,4 +37,6 @@
     <!-- <node type="turtlesim_node" pkg="turtlesim" name="turtle1" output="screen"> -->
     <!-- </node> -->
     <node type="commu" pkg="mecanum_steady" name="commu" output="screen"></node>
+
+    <node type="rviz" pkg="rviz" name="rviz" output="log" args="-d $(find mecanum_steady)/config/mecanum.rviz"></node>
 </launch>
