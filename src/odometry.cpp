@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/rviz_pose", 1);
     // for test_mode use
     sub_navi_vel = nh.subscribe("/cmd_vel", 1, navi_cb);
-    
+    ros::Rate loop_rate(10);
     last_time = ros::Time::now().toSec();
     while (ros::ok()) {
         ros::spinOnce();
@@ -100,6 +100,8 @@ int main(int argc, char** argv) {
         ps.pose.orientation.y = goal_quat.y;
         ps.pose.orientation.z = goal_quat.z;
         pub_pose.publish(ps);
+
+        loop_rate.sleep();
     }
     return 0;
 }

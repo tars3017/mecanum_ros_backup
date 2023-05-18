@@ -37,6 +37,7 @@ double acc_z_frac;
 double max_xy_vel;
 double min_xy_vel;
 double max_zz_vel;
+double min_zz_vel;
 
 double kp_xy;
 double kp_zz;
@@ -118,6 +119,7 @@ void get_param(ros::NodeHandle nh) {
     nh.getParam("max_xy_vel", max_xy_vel);
     nh.getParam("min_xy_vel", min_xy_vel);
     nh.getParam("max_zz_vel", max_zz_vel);
+    nh.getParam("min_zz_vel", min_zz_vel);
     nh.getParam("kp_xy", kp_xy);
     nh.getParam("kp_zz", kp_zz);
     
@@ -148,14 +150,17 @@ int main(int argc, char** argv) {
     // pub_base_vel = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel", 1);
 
 
-    ros::Rate loop_rate(0.01);
+    ros::Rate loop_rate(10);
 
     std_msgs::Bool go_next;
     double vel_x = 0, vel_y = 0, vel_z = 0;
 
     go_next.data = 0;
+    double real_x_max = 0, real_y_max = 0, real_z_max = 0;
     while (ros::ok()) {
+        // ROS_INFO("her1");
         ros::spinOnce();
+        // ROS_INFO("here2");
         // ROS_INFO("now x pos %lf %lf %lf", now_x_pos, now_y_pos, now_z_pos);
 
         x_err = target_x - now_x_pos;
@@ -176,12 +181,13 @@ int main(int argc, char** argv) {
                 vel_x += (x_err > 0 ? acc_xy : -acc_xy);
                 if (vel_x > max_xy_vel) vel_x = max_xy_vel;
                 else if (vel_x < -max_xy_vel) vel_x = -max_xy_vel;
+                real_x_max = std::max(real_x_max, fabs(vel_x));
             }
             else if (fabs(x_err) > x_tol) {
                 // std::cout << "b" << std::endl;
                 vel_x = kp_xy * x_err;
-                if (vel_x > max_xy_vel) vel_x = max_xy_vel;
-                else if (vel_x < -max_xy_vel) vel_x = -max_xy_vel;
+                if (vel_x > std::min(max_xy_vel, real_x_max)) vel_x = std::min(max_xy_vel, real_x_max);
+                else if (vel_x < -std::min(max_xy_vel, real_x_max)) vel_x = -std::min(max_xy_vel, real_x_max);
                 else if (vel_x > 0 && vel_x < min_xy_vel) vel_x = min_xy_vel;
                 else if (vel_x < 0 && vel_x > -min_xy_vel) vel_x = -min_xy_vel;
             }
@@ -190,11 +196,12 @@ int main(int argc, char** argv) {
                 vel_y += (y_err > 0 ? acc_xy : -acc_xy);
                 if (vel_y > max_xy_vel) vel_y = max_xy_vel;
                 else if (vel_y < -max_xy_vel) vel_y = -max_xy_vel;
+                real_y_max = std::max(real_y_max, fabs(vel_y));
             }
             else if (fabs(y_err) > y_tol) {
                 vel_y = kp_xy * y_err;
-                if (vel_y > max_xy_vel) vel_y = max_xy_vel;
-                else if (vel_y < -max_xy_vel) vel_y = -max_xy_vel;
+                if (vel_y > std::min(max_xy_vel, real_y_max)) vel_y = std::min(max_xy_vel, real_y_max);
+                else if (vel_y < -std::min(max_xy_vel, real_y_max)) vel_y = -std::min(max_xy_vel, real_y_max);
                 else if (vel_y > 0 && vel_y < min_xy_vel) vel_y = min_xy_vel;
                 else if (vel_y < 0 && vel_y > -min_xy_vel) vel_y = -min_xy_vel;
             }
@@ -204,11 +211,14 @@ int main(int argc, char** argv) {
                 vel_z += (z_err > 0 ? acc_zz : -acc_zz);
                 if (vel_z > max_zz_vel) vel_z = max_zz_vel;
                 else if (vel_z < -max_zz_vel) vel_z = -max_zz_vel;
+                real_z_max = std::max(real_z_max, vel_z);
             }
             else if (fabs(z_err) > z_tol) {
                 vel_z = kp_zz * z_err;
-                if (vel_z > max_zz_vel) vel_z = max_zz_vel;
-                else if (vel_z < -max_zz_vel) vel_z = -max_zz_vel;
+                if (vel_z > std::min(max_zz_vel, real_z_max)) vel_z = std::min(max_zz_vel, real_z_max);
+                else if (vel_z < -std::min(max_zz_vel, real_z_max)) vel_z = -std::min(max_zz_vel, real_z_max);
+                else if (vel_z > 0 && vel_z < min_zz_vel) vel_z = min_zz_vel;
+                else if (vel_z < 0 && vel_z > -min_zz_vel) vel_z = -min_zz_vel;
             }
         }
         vel.linear.x = vel_x, vel.linear.y = vel_y, vel.angular.z = vel_z; 
@@ -220,7 +230,10 @@ int main(int argc, char** argv) {
         pub_base_vel.publish(vel);
         /* if (vel_x > 0 ) */ 
         /*     ROS_INFO("published %lf %lf %lf", vel_x, vel_y, vel_z); */
-        // loop_rate.sleep();
+        // ROS_INFO("in the loop");
+        loop_rate.sleep();
+        // ROS_INFO("sleep done");
     }
+    ROS_INFO("navigation end");
     return 0;
 }
