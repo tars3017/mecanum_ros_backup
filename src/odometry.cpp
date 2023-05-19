@@ -92,8 +92,8 @@ int main(int argc, char** argv) {
         geometry_msgs::PoseStamped ps;
         ps.header.stamp = ros::Time::now();
         ps.header.frame_id = "map";
-        ps.pose.position.x = now_pt.x;
-        ps.pose.position.y = now_pt.y;
+        ps.pose.position.x = now_pt.x / 10;
+        ps.pose.position.y = now_pt.y / 10; // cm to 10 cm
         geometry_msgs::Quaternion goal_quat = tf::createQuaternionMsgFromYaw(now_pt.z);
         ps.pose.orientation.w = goal_quat.w;
         ps.pose.orientation.x = goal_quat.x;
