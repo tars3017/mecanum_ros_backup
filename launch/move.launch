@@ -22,14 +22,14 @@
 
     <param name="max_xy_vel" type="double" value="4.3"/>
     <param name="min_xy_vel" type="double" value="0.05"/>
-    <param name="max_zz_vel" type="double" value="0.15"/>
+    <param name="max_zz_vel" type="double" value="0.01"/>
 
     <param name="kp_xy" type="double" value="0.95"/>
     <param name="kp_zz" type="double" value="1"/>
 
     <param name="test_mode" type="bool" value="0"/>
     <param name="debug_send_vel" type="bool" value="0"/>
-    <param name="debug_get_vel" type="bool" value="0"/>
+    <param name="debug_get_vel" type="bool" value="1"/>
 
     <!--node type="drive" pkg="mecanum_steady" name="drive" output="screen"/ --> 
     <!-- node type="set_goal" pkg="mecanum_steady" name="set_goal" output="screen"/ --> 
