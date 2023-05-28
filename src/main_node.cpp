@@ -7,21 +7,28 @@
 #define target_num 8
 
 double target[10][5] { {4, 0, 0}, {4, 3, 0} , {0, 3, 0}, {0, 0, 0},
-                       {4, 0, 0}, {4, 3, 0}, {0, 3}, {0, 0, 0}};
+                       {4, 0, 0}, {4, 3, 0}, {0, 3, 0}, {0, 0, 0}};
 int idx;
 bool last_go_next;
+bool auto_mode;
 geometry_msgs::Point now_goal;
 void next_ctl_cb(const std_msgs::Bool::ConstPtr& msg) {
     if (msg->data) {
         if (last_go_next) return ; 
         last_go_next = msg->data;
-        // now_goal.start_x = target[idx][0];
-        // now_goal.start_y = target[idx][1];
-        // now_goal.start_z = target[idx][2];
-        // ++idx;
-        std::cout << "Reached the goal (" << now_goal.x
+        if (auto_mode) {
+            now_goal.x = target[idx][0];
+            now_goal.y = target[idx][1];
+            now_goal.z = target[idx][2];
+            ++idx;
+        }
+        else {
+            std::cout << "Reached the goal (" << now_goal.x
             << ", " << now_goal.y << ", " << now_goal.z << ")\nInput next goal:";
-        std::cin >> now_goal.x >> now_goal.y >> now_goal.z;
+            std::cin >> now_goal.x >> now_goal.y >> now_goal.z;
+        }
+        
+        
         // ROS_INFO("now %d", idx);
     }
     else {
@@ -36,8 +43,20 @@ int main(int argc, char** argv) {
     ros::Publisher pub_dest = nh.advertise<geometry_msgs::Point>("/base_goal", 1);
     ros::Subscriber sub = nh.subscribe("/reached_status", 1, next_ctl_cb);
 
-    std::cout << "First target: ";
-    std::cin >> now_goal.x >> now_goal.y >> now_goal.z;
+    std::cout << "Auto Mode ? ";
+    std::cin >> auto_mode;
+    
+    if (auto_mode) {
+        now_goal.x = target[idx][0];
+        now_goal.y = target[idx][1];
+        now_goal.z = target[idx][2];
+        ++idx;
+    }
+    else {
+        std::cout << "First target: ";
+        std::cin >> now_goal.x >> now_goal.y >> now_goal.z;
+    }
+    
     while (ros::ok()) {
         ros::spinOnce(); 
         // if (idx == target_num) break;
