@@ -8,8 +8,8 @@
     <node type="navigation" pkg="mecanum_steady" name="navigation" output="screen"/> 
     <node type="odometry" pkg="mecanum_steady" name="odometry" output="screen"/>
 
-    <param name="x_tol" type="double" value="0.12"/>
-    <param name="y_tol" type="double" value="0.12"/>
+    <param name="x_tol" type="double" value="0.1"/>
+    <param name="y_tol" type="double" value="0.1"/>
     <param name="z_tol" type="double" value="0.01"/>
 
     <param name="acc_xy" type="double" value="0.3"/>
@@ -17,16 +17,16 @@
 
     <param name="acc_x_frac" type="double" value="0.65"/>
     <param name="acc_y_frac" type="double" value="0.65"/>
-    <param name="acc_z_frac" type="double" value="0.3"/>
+    <param name="acc_z_frac" type="double" value="0.4"/>
     <!-- 0.2 percent of the lenght used to deacceleration-->
 
     <param name="max_xy_vel" type="double" value="3.5"/>
-    <param name="min_xy_vel" type="double" value="0.045"/>
-    <param name="max_zz_vel" type="double" value="0.65"/>
+    <param name="min_xy_vel" type="double" value="0.025"/>
+    <param name="max_zz_vel" type="double" value="0.1"/>
     <param name="min_zz_vel" type="double" value="0.01"/>
 
-    <param name="kp_xy" type="double" value="2"/>
-    <param name="kp_zz" type="double" value="1"/>
+    <param name="kp_xy" type="double" value="1.5"/>
+    <param name="kp_zz" type="double" value="0.7"/>
 
     <param name="test_mode" type="bool" value="0"/>
     <param name="debug_send_vel" type="bool" value="0"/>
@@ -39,6 +39,6 @@
     <!-- </node> -->
     <node type="commu" pkg="mecanum_steady" name="commu" output="screen"></node>
 
-    <node type="rviz" pkg="rviz" name="rviz" output="log" args="-d $(find mecanum_steady)/config/mecanum.rviz"></node>
-    <node type="rqt_plot" pkg="rqt_plot" name="rqt_plot" output="screen"/>
+    <!-- <node type="rviz" pkg="rviz" name="rviz" output="log" args="-d $(find mecanum_steady)/config/mecanum.rviz"></node> -->
+    <!-- <node type="rqt_plot" pkg="rqt_plot" name="rqt_plot" output="screen"/> -->
 </launch>
