@@ -41,6 +41,8 @@ double min_zz_vel;
 
 double kp_xy;
 double kp_zz;
+
+double x_slow_dist, y_slow_dist, z_slow_dist;
 // param
 
 double x_err, y_err, z_err;
@@ -126,6 +128,10 @@ void get_param(ros::NodeHandle nh) {
     nh.getParam("test_mode", test_mode);
     nh.getParam("debug_send_vel", debug_send_vel);
     nh.getParam("debug_get_vel", debug_get_vel);
+
+    nh.getParam("x_slow_dist", x_slow_dist);
+    nh.getParam("y_slow_dist", y_slow_dist);
+    nh.getParam("z_slow_dist", z_slow_dist);
 }
 
 
@@ -207,7 +213,7 @@ int main(int argc, char** argv) {
             }
             // ROS_INFO("vel_y %lf", vel_y);
 
-            if ( fabs(z_err) > z_tol && fabs(z_err) > fabs(total_z*(1-acc_z_frac)) ) {
+            if ( fabs(z_err) > z_tol && fabs(z_err) > fabs(total_z*(1-acc_z_frac)) && fabs(z_err) >= z_slow_dist) {
                 vel_z += (z_err > 0 ? acc_zz : -acc_zz);
                 if (vel_z > max_zz_vel) vel_z = max_zz_vel;
                 else if (vel_z < -max_zz_vel) vel_z = -max_zz_vel;

@@ -6,8 +6,8 @@
 
 #define target_num 8
 
-double target[10][5] { {4, 0, 0}, {4, 3, 0} , {0, 3, 0}, {0, 0, 0},
-                       {4, 0, 0}, {4, 3, 0}, {0, 3, 0}, {0, 0, 0}};
+double target[10][5] { {4, 0, 0}, {4, 4, 0} , {0, 4, 0}, {0, 0, 0},
+                       {4, 0, 0}, {4, 4, 0}, {0, 4, 0}, {0, 0, 0}};
 int idx;
 bool last_go_next;
 bool auto_mode;
@@ -26,6 +26,11 @@ void next_ctl_cb(const std_msgs::Bool::ConstPtr& msg) {
             std::cout << "Reached the goal (" << now_goal.x
             << ", " << now_goal.y << ", " << now_goal.z << ")\nInput next goal:";
             std::cin >> now_goal.x >> now_goal.y >> now_goal.z;
+            bool check;
+            if (now_goal.z > 3.14) {
+                std::cout << "Notice the unit! Are you sure?\n";
+                std::cin >> check;
+            }
         }
         
         
@@ -59,7 +64,7 @@ int main(int argc, char** argv) {
     
     while (ros::ok()) {
         ros::spinOnce(); 
-        // if (idx == target_num) break;
+        if (idx > target_num) break;
         // now_goal.x = target[idx][0];
         // now_goal.y = target[idx][1];
         // now_goal.z = target[idx][2];
