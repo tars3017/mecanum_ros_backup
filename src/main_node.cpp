@@ -3,11 +3,14 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Bool.h"
 #include "geometry_msgs/Point.h"
+#include <vector>
 
-#define target_num 8
+// #define target_num 8
 
-double target[10][5] { {4, 0, 0}, {4, 4, 0} , {0, 4, 0}, {0, 0, 0},
-                       {4, 0, 0}, {4, 4, 0}, {0, 4, 0}, {0, 0, 0}};
+// double target[10][5] { {4, 0, 0}, {4, 4, 0} , {0, 4, 0}, {0, 0, 0},
+//                        {4, 0, 0}, {4, 4, 0}, {0, 4, 0}, {0, 0, 0}};
+std::vector<double> target_x, target_y, target_z;
+
 int idx;
 bool last_go_next;
 bool auto_mode;
@@ -17,9 +20,9 @@ void next_ctl_cb(const std_msgs::Bool::ConstPtr& msg) {
         if (last_go_next) return ; 
         last_go_next = msg->data;
         if (auto_mode) {
-            now_goal.x = target[idx][0];
-            now_goal.y = target[idx][1];
-            now_goal.z = target[idx][2];
+            now_goal.x = target_x[idx];
+            now_goal.y = target_y[idx];
+            now_goal.z = target_z[idx];
             ++idx;
         }
         else {
@@ -45,6 +48,10 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "main_node");
     ros::NodeHandle nh;
 
+    nh.getParam("target_x", target_x);
+    nh.getParam("target_y", target_y);
+    nh.getParam("target_z", target_z);
+
     ros::Publisher pub_dest = nh.advertise<geometry_msgs::Point>("/base_goal", 1);
     ros::Subscriber sub = nh.subscribe("/reached_status", 1, next_ctl_cb);
 
@@ -52,9 +59,9 @@ int main(int argc, char** argv) {
     std::cin >> auto_mode;
     
     if (auto_mode) {
-        now_goal.x = target[idx][0];
-        now_goal.y = target[idx][1];
-        now_goal.z = target[idx][2];
+        now_goal.x = target_x[idx];
+        now_goal.y = target_y[idx];
+        now_goal.z = target_z[idx];
         ++idx;
     }
     else {
@@ -64,7 +71,7 @@ int main(int argc, char** argv) {
     
     while (ros::ok()) {
         ros::spinOnce(); 
-        if (idx > target_num) break;
+        if (auto_mode && idx > target_x.size()) break;
         // now_goal.x = target[idx][0];
         // now_goal.y = target[idx][1];
         // now_goal.z = target[idx][2];

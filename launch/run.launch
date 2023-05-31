@@ -1,0 +1,11 @@
+<launch>
+    <!-- commu.launch -->
+    <include file="$(find mecanum_steady)/launch/commu.launch"/>
+
+    <!-- move.launch -->
+    <include file="$(find mecanum_steady)/launch/move.launch"/>
+
+    <!-- main_node -->
+    <rosparam command="load" file="$(find mecanum_steady)/params/targets.yaml" />
+    <node type="main_node" name="main_node" output="screen" pkg="mecanum_steady" required="true" />
+</launch>

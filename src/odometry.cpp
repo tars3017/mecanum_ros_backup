@@ -25,6 +25,10 @@ ros::Subscriber sub_navi_vel;
 geometry_msgs::Point now_pt;
 geometry_msgs::Twist vel;
 
+// for rqt_plot real vel
+geometry_msgs::Twist base_vel_for_test;
+ros::Publisher pub_base_vel_for_test;
+
 void navi_cb(const geometry_msgs::Twist::ConstPtr& msg) {
     vel.linear.x = msg->linear.x;
     vel.linear.y = msg->linear.y;
@@ -36,11 +40,19 @@ void base_cb(const geometry_msgs::Twist::ConstPtr& msg = nullptr) {
         base_now_x_vel = msg->linear.x;
         base_now_y_vel = msg->linear.y;
         base_now_z_vel = msg->angular.z;
+
+        base_vel_for_test.linear.x = msg->linear.x;
+        base_vel_for_test.linear.y = msg->linear.y;
+        base_vel_for_test.linear.z = msg->linear.z;
     }
     else {
         base_now_x_vel = vel.linear.x;
         base_now_y_vel = vel.linear.y;
         base_now_z_vel = vel.angular.z;
+
+        base_vel_for_test.linear.x = vel.linear.x;
+        base_vel_for_test.linear.y = vel.linear.y;
+        base_vel_for_test.linear.z = vel.linear.z;
     }
     if (debug_get_vel && (base_now_x_vel != 0 || base_now_y_vel != 0 || base_now_z_vel != 0)) {
         ROS_INFO("Get base speed %lf %lf %lf", base_now_x_vel, base_now_y_vel, base_now_z_vel);
@@ -73,6 +85,7 @@ int main(int argc, char** argv) {
 
     sub_base_vel = nh.subscribe("/base_speed", 1, base_cb);
     pub_odom = nh.advertise<geometry_msgs::Point>("/odom", 1);
+    pub_base_vel_for_test = nh.advertise<geometry_msgs::Twist>("base_speed_test", 1);
     
     // for Rviz
     pub_pose = nh.advertise<geometry_msgs::PoseStamped>("/rviz_pose", 1);
@@ -88,12 +101,15 @@ int main(int argc, char** argv) {
         cal_pose();
         pub_odom.publish(now_pt);
 
+        // for rqt_plot
+        pub_base_vel_for_test.publish(base_vel_for_test);
+
         // for Rviz
         geometry_msgs::PoseStamped ps;
         ps.header.stamp = ros::Time::now();
         ps.header.frame_id = "map";
-        ps.pose.position.x = now_pt.x / 10;
-        ps.pose.position.y = now_pt.y / 10; // cm to 10 cm
+        ps.pose.position.x = now_pt.x;
+        ps.pose.position.y = now_pt.y;
         geometry_msgs::Quaternion goal_quat = tf::createQuaternionMsgFromYaw(now_pt.z);
         ps.pose.orientation.w = goal_quat.w;
         ps.pose.orientation.x = goal_quat.x;
