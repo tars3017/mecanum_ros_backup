@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
         now_goal.x = target_x[idx];
         now_goal.y = target_y[idx];
         now_goal.z = target_z[idx];
-        ++idx;
+        //++idx;
     }
     else {
         std::cout << "First target: ";
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
         // now_goal.y = target[idx][1];
         // now_goal.z = target[idx][2];
 
-        /* ROS_INFO("idx %d", idx); */
+        // ROS_INFO("idx %d", idx);
         /* std::cout << "now_goal " << now_goal.x << ' ' << now_goal.y << ' ' << now_goal.z << std::endl; */    
         pub_dest.publish(now_goal); 
     }

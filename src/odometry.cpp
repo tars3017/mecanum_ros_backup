@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "geometry_msgs/PoseStamped.h"
 #include "tf/transform_broadcaster.h"
+#include <random>
 
 double last_time, now_time;
 bool test_mode, debug_get_vel;
@@ -29,6 +30,17 @@ geometry_msgs::Twist vel;
 geometry_msgs::Twist base_vel_for_test;
 ros::Publisher pub_base_vel_for_test;
 
+
+double get_random() {
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> negative(0, 1);
+    std::uniform_int_distribution<std::mt19937::result_type> x(0, 1000);
+    double num = x(dev) * 1.0;
+    if (negative(dev)) {num *= -1;}
+    return num / 1000000000;
+}
+
 void navi_cb(const geometry_msgs::Twist::ConstPtr& msg) {
     vel.linear.x = msg->linear.x;
     vel.linear.y = msg->linear.y;
@@ -46,13 +58,13 @@ void base_cb(const geometry_msgs::Twist::ConstPtr& msg = nullptr) {
         base_vel_for_test.linear.z = msg->linear.z;
     }
     else {
-        base_now_x_vel = vel.linear.x;
-        base_now_y_vel = vel.linear.y;
-        base_now_z_vel = vel.angular.z;
+        base_now_x_vel = vel.linear.x + get_random();
+        base_now_y_vel = vel.linear.y + get_random();
+        base_now_z_vel = vel.angular.z + get_random();
 
-        base_vel_for_test.linear.x = vel.linear.x;
-        base_vel_for_test.linear.y = vel.linear.y;
-        base_vel_for_test.linear.z = vel.linear.z;
+        base_vel_for_test.linear.x = base_now_x_vel;
+        base_vel_for_test.linear.y = base_now_y_vel;
+        base_vel_for_test.linear.z = base_now_z_vel;
     }
     if (debug_get_vel && (base_now_x_vel != 0 || base_now_y_vel != 0 || base_now_z_vel != 0)) {
         ROS_INFO("Get base speed %lf %lf %lf", base_now_x_vel, base_now_y_vel, base_now_z_vel);
@@ -77,7 +89,6 @@ void cal_pose() {
 }
 
 int main(int argc, char** argv) {
-
     ros::init(argc, argv, "odometry");
     ros::NodeHandle nh;
     nh.getParam("debug_get_vel", debug_get_vel);
