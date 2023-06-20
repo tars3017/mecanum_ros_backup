@@ -1,6 +1,6 @@
 <launch>
     <!-- commu.launch -->
-    <include file="$(find mecanum_steady)/launch/commu.launch"/>
+    <!-- <include file="$(find mecanum_steady)/launch/commu.launch"/> -->
 
     <!-- move.launch -->
     <include file="$(find mecanum_steady)/launch/move.launch"/>

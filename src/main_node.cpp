@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
         now_goal.x = target_x[idx];
         now_goal.y = target_y[idx];
         now_goal.z = target_z[idx];
-        //++idx;
+        ++idx;
     }
     else {
         std::cout << "First target: ";
