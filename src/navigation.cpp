@@ -197,6 +197,9 @@ int main(int argc, char** argv) {
                 else if (vel_x > 0 && vel_x < min_xy_vel) vel_x = min_xy_vel;
                 else if (vel_x < 0 && vel_x > -min_xy_vel) vel_x = -min_xy_vel;
             }
+            else {
+                vel_x = 0;
+            }
 
             if ( fabs(y_err) > y_tol && fabs(y_err) > fabs(total_y*(1-acc_y_frac)) ) {
                 vel_y += (y_err > 0 ? acc_xy : -acc_xy);
@@ -210,6 +213,9 @@ int main(int argc, char** argv) {
                 else if (vel_y < -std::min(max_xy_vel, real_y_max)) vel_y = -std::min(max_xy_vel, real_y_max);
                 else if (vel_y > 0 && vel_y < min_xy_vel) vel_y = min_xy_vel;
                 else if (vel_y < 0 && vel_y > -min_xy_vel) vel_y = -min_xy_vel;
+            }
+            else {
+                vel_y = 0;
             }
             // ROS_INFO("vel_y %lf", vel_y);
 
@@ -225,6 +231,9 @@ int main(int argc, char** argv) {
                 else if (vel_z < -std::min(max_zz_vel, real_z_max)) vel_z = -std::min(max_zz_vel, real_z_max);
                 else if (vel_z > 0 && vel_z < min_zz_vel) vel_z = min_zz_vel;
                 else if (vel_z < 0 && vel_z > -min_zz_vel) vel_z = -min_zz_vel;
+            }
+            else {
+                vel_z = 0;
             }
         }
         vel.linear.x = vel_x, vel.linear.y = vel_y, vel.angular.z = vel_z; 
