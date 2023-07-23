@@ -10,3 +10,9 @@
 6. 再開一個新的 terminal，進入cd ~/mecanum_ws，輸入```rosrun mecanum_steady main_node```，此為輸入目標點座標的程式
 7. 輸入目標點，(x, y, z)三個數字，請不要輸入現在的座標，座標要不同車子才會動
 8. 每次測試完都要用 ctrl + C 和 ctrl + D 關掉程式(需關掉 move.launch 跟 main_node)
+
+---
+Final Result
+
+https://github.com/tars3017/mecanum_ros_backup/assets/64685394/f3f76957-f3d2-4d47-8221-bf9d21da3d03
+
